@@ -2,31 +2,40 @@ import logging
 import os
 from pathlib import Path
 
-import orjson
+#import orjson
 from fastapi import FastAPI, Form, UploadFile
 from fastapi.staticfiles import StaticFiles
 
 from app.api import router as api_router
-from app.upload import ingest_runnable
+# from app.upload import ingest_runnable
+
+from langserve.server import add_routes
+from research_assistant import chain as research_assistant_chain
+from sql_research_assistant import chain as sql_research_assistant_chain
+
+from nextgen.helpers.EnvHelper import EnvHelper
+
+os.environ["LANGCHAIN_PROJECT"] = "Opengpt_custom"
+logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="OpenGPTs API")
 
-
 # Get root of app, used to point to directory containing static files
 ROOT = Path(__file__).parent.parent
 
-
 app.include_router(api_router)
 
+#TODO Replace this with AZ Search Service API
+# @app.post("/ingest", description="Upload files to the given assistant.")
+# def ingest_files(files: list[UploadFile], config: str = Form(...)) -> None:
+#     """Ingest a list of files."""
+#     config = orjson.loads(config)
+#     return ingest_runnable.batch([file.file for file in files], config)
 
-@app.post("/ingest", description="Upload files to the given assistant.")
-def ingest_files(files: list[UploadFile], config: str = Form(...)) -> None:
-    """Ingest a list of files."""
-    config = orjson.loads(config)
-    return ingest_runnable.batch([file.file for file in files], config)
-
+add_routes(app, research_assistant_chain, path="/research-assistant")
+add_routes(app, sql_research_assistant_chain, path="/sql-research-assistant")
 
 ui_dir = str(ROOT / "ui")
 
@@ -34,6 +43,7 @@ if os.path.exists(ui_dir):
     app.mount("", StaticFiles(directory=ui_dir, html=True), name="ui")
 else:
     logger.warn("No UI directory found, serving API only.")
+
 
 if __name__ == "__main__":
     import uvicorn

@@ -19,3 +19,4 @@ services:
       - .env
     environment:
       REDIS_URL: "redis://opengpts-redis:6379"
+      DOCKER : "True"

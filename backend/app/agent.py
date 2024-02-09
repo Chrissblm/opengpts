@@ -14,12 +14,8 @@ from app.agent_types.openai_agent import get_openai_agent_executor
 from app.agent_types.xml_agent import get_xml_agent_executor
 from app.chatbot import get_chatbot_executor
 from app.checkpoint import RedisCheckpoint
-from app.llms import (
-    get_anthropic_llm,
-    get_google_llm,
-    get_mixtral_fireworks,
-    get_openai_llm,
-)
+from nextgen.helpers.LLMHelper import NGllmhelper
+
 from app.retrieval import get_retrieval_executor
 from app.tools import (
     RETRIEVAL_DESCRIPTION,
@@ -43,7 +39,9 @@ class AgentType(str, Enum):
 DEFAULT_SYSTEM_MESSAGE = "You are a helpful assistant."
 
 CHECKPOINTER = RedisCheckpoint(at=CheckpointAt.END_OF_STEP)
+    # Create an instance of the llms_ng class
 
+llms = NGllmhelper()
 
 def get_agent_executor(
     tools: list,
@@ -52,35 +50,35 @@ def get_agent_executor(
     interrupt_before_action: bool,
 ):
     if agent == AgentType.GPT_35_TURBO:
-        llm = get_openai_llm()
+        llm = llms.get_openai_llm()
         return get_openai_agent_executor(
             tools, llm, system_message, interrupt_before_action, CHECKPOINTER
         )
     elif agent == AgentType.GPT_4:
-        llm = get_openai_llm(gpt_4=True)
+        llm = llms.get_openai_llm(gpt_4=True)
         return get_openai_agent_executor(
             tools, llm, system_message, interrupt_before_action, CHECKPOINTER
         )
     elif agent == AgentType.AZURE_OPENAI:
-        llm = get_openai_llm(azure=True)
+        llm = llms.get_openai_llm(azure=True)
         return get_openai_agent_executor(
             tools, llm, system_message, interrupt_before_action, CHECKPOINTER
         )
-    elif agent == AgentType.CLAUDE2:
-        llm = get_anthropic_llm()
-        return get_xml_agent_executor(
-            tools, llm, system_message, interrupt_before_action, CHECKPOINTER
-        )
-    elif agent == AgentType.BEDROCK_CLAUDE2:
-        llm = get_anthropic_llm(bedrock=True)
-        return get_xml_agent_executor(
-            tools, llm, system_message, interrupt_before_action, CHECKPOINTER
-        )
-    elif agent == AgentType.GEMINI:
-        llm = get_google_llm()
-        return get_google_agent_executor(
-            tools, llm, system_message, interrupt_before_action, CHECKPOINTER
-        )
+    # elif agent == AgentType.CLAUDE2:
+    #     llm = get_anthropic_llm()
+    #     return get_xml_agent_executor(
+    #         tools, llm, system_message, interrupt_before_action, CHECKPOINTER
+    #     )
+    # elif agent == AgentType.BEDROCK_CLAUDE2:
+    #     llm = get_anthropic_llm(bedrock=True)
+    #     return get_xml_agent_executor(
+    #         tools, llm, system_message, interrupt_before_action, CHECKPOINTER
+    #     )
+    # elif agent == AgentType.GEMINI:
+    #     llm = get_google_llm()
+    #     return get_google_agent_executor(
+    #         tools, llm, system_message, interrupt_before_action, CHECKPOINTER
+    #     )
     else:
         raise ValueError("Unexpected agent type")
 
@@ -151,20 +149,21 @@ def get_chatbot(
     llm_type: LLMType,
     system_message: str,
 ):
+
     if llm_type == LLMType.GPT_35_TURBO:
-        llm = get_openai_llm()
+        llm = llms.get_openai_llm()
     elif llm_type == LLMType.GPT_4:
-        llm = get_openai_llm(gpt_4=True)
+        llm = llms.get_openai_llm(gpt_4=True)
     elif llm_type == LLMType.AZURE_OPENAI:
-        llm = get_openai_llm(azure=True)
-    elif llm_type == LLMType.CLAUDE2:
-        llm = get_anthropic_llm()
-    elif llm_type == LLMType.BEDROCK_CLAUDE2:
-        llm = get_anthropic_llm(bedrock=True)
-    elif llm_type == LLMType.GEMINI:
-        llm = get_google_llm()
-    elif llm_type == LLMType.MIXTRAL:
-        llm = get_mixtral_fireworks()
+        llm = llms.get_openai_llm(azure=True)
+    # elif llm_type == LLMType.CLAUDE2:
+    #     llm = get_anthropic_llm()
+    # elif llm_type == LLMType.BEDROCK_CLAUDE2:
+    #     llm = get_anthropic_llm(bedrock=True)
+    # elif llm_type == LLMType.GEMINI:
+    #     llm = get_google_llm()
+    # elif llm_type == LLMType.MIXTRAL:
+    #     llm = get_mixtral_fireworks()
     else:
         raise ValueError("Unexpected llm type")
     return get_chatbot_executor(llm, system_message, CHECKPOINTER)
@@ -225,19 +224,19 @@ class ConfigurableRetrieval(RunnableBinding):
         others.pop("bound", None)
         retriever = get_retriever(assistant_id)
         if llm_type == LLMType.GPT_35_TURBO:
-            llm = get_openai_llm()
+            llm = llms.get_openai_llm()
         elif llm_type == LLMType.GPT_4:
-            llm = get_openai_llm(gpt_4=True)
+            llm = llms.get_openai_llm(gpt_4=True)
         elif llm_type == LLMType.AZURE_OPENAI:
-            llm = get_openai_llm(azure=True)
-        elif llm_type == LLMType.CLAUDE2:
-            llm = get_anthropic_llm()
-        elif llm_type == LLMType.BEDROCK_CLAUDE2:
-            llm = get_anthropic_llm(bedrock=True)
-        elif llm_type == LLMType.GEMINI:
-            llm = get_google_llm()
-        elif llm_type == LLMType.MIXTRAL:
-            llm = get_mixtral_fireworks()
+            llm = llms.get_openai_llm(azure=True)
+        # elif llm_type == LLMType.CLAUDE2:
+        #     llm = get_anthropic_llm()
+        # elif llm_type == LLMType.BEDROCK_CLAUDE2:
+        #     llm = get_anthropic_llm(bedrock=True)
+        # elif llm_type == LLMType.GEMINI:
+        #     llm = get_google_llm()
+        # elif llm_type == LLMType.MIXTRAL:
+        #     llm = get_mixtral_fireworks()
         else:
             raise ValueError("Unexpected llm type")
         chatbot = get_retrieval_executor(llm, retriever, system_message, CHECKPOINTER)

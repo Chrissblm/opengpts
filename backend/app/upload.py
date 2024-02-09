@@ -20,7 +20,7 @@ from langchain_core.runnables import (
     RunnableSerializable,
 )
 from langchain_core.vectorstores import VectorStore
-from langchain_openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings, AzureOpenAIEmbeddings
 
 from app.ingest import ingest_blob
 from app.parsing import MIMETYPE_BASED_PARSER
@@ -106,21 +106,21 @@ class IngestRunnable(RunnableSerializable[BinaryIO, List[str]]):
 index_schema = {
     "tag": [{"name": "namespace"}],
 }
-vstore = Redis(
-    redis_url=os.environ["REDIS_URL"],
-    index_name="opengpts",
-    embedding=OpenAIEmbeddings(),
-    index_schema=index_schema,
-)
+# vstore = Redis(
+#     redis_url=os.environ["REDIS_URL"],
+#     index_name="opengpts",
+#     embedding=AzureOpenAIEmbeddings(),
+#     index_schema=index_schema,
+# )
 
 
-ingest_runnable = IngestRunnable(
-    text_splitter=RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200),
-    vectorstore=vstore,
-).configurable_fields(
-    assistant_id=ConfigurableField(
-        id="assistant_id",
-        annotation=str,
-        name="Assistant ID",
-    ),
-)
+# ingest_runnable = IngestRunnable(
+#     text_splitter=RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200),
+#     vectorstore=vstore,
+# ).configurable_fields(
+#     assistant_id=ConfigurableField(
+#         id="assistant_id",
+#         annotation=str,
+#         name="Assistant ID",
+#     ),
+# )

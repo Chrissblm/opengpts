@@ -9,7 +9,7 @@ from langchain.pydantic_v1 import ValidationError
 from langchain_core.messages import AnyMessage
 from langchain_core.runnables import RunnableConfig
 from langserve.schema import FeedbackCreateRequest
-from langserve.server import _unpack_input
+from langserve.server import _unpack_input  #updated from from langserve.server to langserve.api_handler
 from langsmith.utils import tracing_is_enabled
 from pydantic import BaseModel, Field
 from sse_starlette import EventSourceResponse

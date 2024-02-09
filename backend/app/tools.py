@@ -19,8 +19,19 @@ from langchain_community.utilities.tavily_search import TavilySearchAPIWrapper
 from langchain_community.vectorstores.redis import RedisFilter
 from langchain_robocorp import ActionServerToolkit
 
-from app.upload import vstore
+#from app.upload import vstore
+import os
 
+from langchain_community.retrievers import AzureCognitiveSearchRetriever
+
+from nextgen.helpers.EnvHelper import EnvHelper
+envhelper = EnvHelper()
+
+os.environ["ROBOCORP_ACTION_SERVER_URL"] = envhelper.ROBOCORP_ACTION_SERVER_URL
+os.environ["ROBOCORP_ACTION_SERVER_KEY"] = envhelper.ROBOCORP_ACTION_SERVER_KEY
+os.environ["TAVILY_API_KEY"] = envhelper.TAVILY_API_KEY
+
+azure_retriever = AzureCognitiveSearchRetriever(content_key="content", top_k=10, service_name=envhelper.AZURE_COGNITIVE_SEARCH_SERVICE_NAME, index_name=envhelper.AZURE_SEARCH_INDEX, api_key=envhelper.AZURE_SEARCH_KEY)
 
 class DDGInput(BaseModel):
     query: str = Field(description="search query to look up")
@@ -40,9 +51,7 @@ If the user asks a vague question, they are likely meaning to look up info from 
 
 
 def get_retriever(assistant_id: str):
-    return vstore.as_retriever(
-        search_kwargs={"filter": RedisFilter.tag("namespace") == assistant_id}
-    )
+    return azure_retriever
 
 
 @lru_cache(maxsize=5)
@@ -121,14 +130,14 @@ def _get_tavily_answer():
     return TavilyAnswer(api_wrapper=tavily_search)
 
 
-@lru_cache(maxsize=1)
-def _get_action_server():
-    toolkit = ActionServerToolkit(
-        url=os.environ.get("ROBOCORP_ACTION_SERVER_URL"),
-        api_key=os.environ.get("ROBOCORP_ACTION_SERVER_KEY"),
-    )
-    tools = toolkit.get_tools()
-    return tools
+# @lru_cache(maxsize=1)
+# def _get_action_server():
+#     toolkit = ActionServerToolkit(
+#         url=os.environ.get("ROBOCORP_ACTION_SERVER_URL"),
+#         api_key=os.environ.get("ROBOCORP_ACTION_SERVER_KEY"),
+#     )
+#     tools = toolkit.get_tools()
+#     return tools
 
 
 @lru_cache(maxsize=1)
@@ -150,7 +159,7 @@ class AvailableTools(str, Enum):
     TAVILY_ANSWER = "Search (short answer, Tavily)"
     RETRIEVAL = "Retrieval"
     ARXIV = "Arxiv"
-    YOU_SEARCH = "You.com Search"
+    # YOU_SEARCH = "You.com Search"
     SEC_FILINGS = "SEC Filings (Kay.ai)"
     PRESS_RELEASES = "Press Releases (Kay.ai)"
     PUBMED = "PubMed"
@@ -158,11 +167,11 @@ class AvailableTools(str, Enum):
 
 
 TOOLS = {
-    AvailableTools.ACTION_SERVER: _get_action_server,
+    # AvailableTools.ACTION_SERVER: _get_action_server,
     AvailableTools.CONNERY: _get_connery_actions,
     AvailableTools.DDG_SEARCH: _get_duck_duck_go,
     AvailableTools.ARXIV: _get_arxiv,
-    AvailableTools.YOU_SEARCH: _get_you_search,
+    # AvailableTools.YOU_SEARCH: _get_you_search,
     AvailableTools.SEC_FILINGS: _get_sec_filings,
     AvailableTools.PRESS_RELEASES: _get_press_releases,
     AvailableTools.PUBMED: _get_pubmed,

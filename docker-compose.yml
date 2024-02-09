@@ -22,6 +22,7 @@ services:
       - ./backend:/backend
     environment:
       REDIS_URL: "redis://opengpts-redis:6379"
+      DOCKER : "True"
     command:
       - --reload
   frontend:

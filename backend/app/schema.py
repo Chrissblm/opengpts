@@ -55,3 +55,11 @@ OpengptsUserId = Annotated[
         )
     ),
 ]
+
+# from azure.identity import DefaultAzureCredential
+# def get_authenticated_user():
+#     # Get a credential for authenticating to Azure AD
+#     credential = DefaultAzureCredential()
+#     token = credential.get_token('https://management.azure.com/.default')
+
+#     return token
